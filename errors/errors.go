@@ -14,19 +14,22 @@ func (e *Error) GetCode() Code {
 	return e.code
 }
 
-func (e *Error) GetError() string {
-	if e.error != nil {
-		err := e.error.Error()
-		return err
-	}
-	return ""
-}
-
 func (e *Error) GetMessage() string {
 	if msg, ok := e.message.(string); ok {
 		return msg
 	}
 	return ""
+}
+
+func (e *Error) GetError() error {
+	return e.error
+}
+
+func (e *Error) Error() string {
+	if e.error != nil {
+		return e.error.Error()
+	}
+	return e.GetMessage()
 }
 
 func (e *Error) Unwrap() error {
