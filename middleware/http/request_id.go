@@ -1,33 +1,23 @@
 package httpmiddleware
 
 import (
-	"context"
+	ctxmeta "go/helperpkg/ctx_meta"
+	"go/helperpkg/middleware"
 	"net/http"
 
 	"github.com/google/uuid"
 )
 
-type ctxKeyRequestID struct{}
-
-const RequestIDHeader = "X-Request-ID"
-
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Header.Get(RequestIDHeader)
+		id := r.Header.Get(middleware.RequestIDHeader)
 		if id == "" {
 			id = uuid.NewString()
 		}
 
-		ctx := context.WithValue(r.Context(), ctxKeyRequestID{}, id)
+		ctx := ctxmeta.WithRequestID(r.Context(), id)
 
-		w.Header().Set(RequestIDHeader, id)
+		w.Header().Set(middleware.RequestIDHeader, id)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func GetRequestID(ctx context.Context) string {
-	if v, ok := ctx.Value(ctxKeyRequestID{}).(string); ok {
-		return v
-	}
-	return ""
 }
