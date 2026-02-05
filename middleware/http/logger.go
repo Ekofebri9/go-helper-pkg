@@ -5,6 +5,8 @@ import (
 	"go/helperpkg/logger"
 	"log/slog"
 	"net/http"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 func Logger(next http.Handler) http.Handler {
@@ -16,6 +18,12 @@ func Logger(next http.Handler) http.Handler {
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 		)
+
+		span := trace.SpanFromContext(r.Context())
+		if span.SpanContext().IsValid() {
+			traceID := span.SpanContext().TraceID().String()
+			l = l.With(slog.String("trace_id", traceID))
+		}
 
 		ctx := logger.WithContext(r.Context(), l)
 		next.ServeHTTP(w, r.WithContext(ctx))

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 
 	ctxmeta "go/helperpkg/ctx_meta"
@@ -24,6 +25,12 @@ func LoggerUnary() grpc.UnaryServerInterceptor {
 			slog.String("request_id", reqID),
 			slog.String("grpc_method", info.FullMethod),
 		)
+
+		span := trace.SpanFromContext(ctx)
+		if span.SpanContext().IsValid() {
+			traceID := span.SpanContext().TraceID().String()
+			l = l.With(slog.String("trace_id", traceID))
+		}
 
 		ctx = logger.WithContext(ctx, l)
 		return handler(ctx, req)
