@@ -1,3 +1,6 @@
 package ctxmeta
 
-type requestIDKey struct{}
+type (
+	requestIDKey struct{}
+	claimsKey    struct{}
+)
